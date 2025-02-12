@@ -10,6 +10,62 @@ using MakieCore, DustExtinction, CairoMakie, Unitful
 # ╔═╡ 38b19661-d3b0-4b1b-bd73-5b59819e250a
 using DustExtinction: bounds, aa_to_invum, ExtinctionLaw
 
+# ╔═╡ e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
+using PlutoUI
+
+# ╔═╡ e952645a-97d6-4edd-a6a1-4e589782fa06
+md"""
+# Makie migration 🐤
+
+[RIIR](https://github.com/ansuz/RIIR)? Nah, RIIM. Protoypes here.
+"""
+
+# ╔═╡ f3852801-04f6-4b54-acb9-211a3eda682f
+md"""
+## Motivation
+
+DustExtinction.jl currently uses Plots.jl to generate a bunch of static plot images that are then added to the docs. A while back, [Miles had the idea](https://github.com/JuliaAstro/DustExtinction.jl/issues/36) to streamline this process by making the plot creation part of the doc creation process, assisted by plot recipes. Although the original idea was to try and implement this with [Plots.jl's recipe system](https://docs.juliaplots.org/dev/recipes/#recipes), Makie.jl has since come on the scene as a mature, pure Julia alternative.
+
+Noteable examples in JuliaAstro-adjacent ecosystems also exploring and/or already making the switch include [DimensionalData.jl](https://github.com/rafaqz/DimensionalData.jl/issues/815#issuecomment-2393822170) --- which backs the underlying data in AstroImages.jl, [PairPlots.jl](https://github.com/sefffal/PairPlots.jl/pull/12#issue-1513106532), and [SkyImages.jl](https://github.com/JuliaAPlavin/SkyImages.jl/tree/master/ext).
+"""
+
+# ╔═╡ 9ad3d6d4-589c-41a0-953b-da9df3093304
+md"""
+## Basic implementation
+
+Ideally, we would [like a recipe](https://docs.makie.org/stable/tutorials/wrap-existing-recipe) that looks something like this from our doc generation env:
+
+```julia
+using DustExtinction
+
+law = CCM89()
+
+plot(law)
+
+# <Nice plot with correct limits, axes labels, etc. created>
+```
+"""
+
+# ╔═╡ a0365153-b17d-4299-a109-eced2dbd377f
+md"""
+To accomplish this, it seems that we just need to teach Makie how to interpret our custom `ExctinctionLaw` types. Starting with a vanilla Makie plot object like:
+
+```julia
+x = 1:10
+y = x .^ 2
+plot(x, y) # default plot
+lines(x, y) # or line plot
+scatter(x, y) # or scatter plot
+```
+"""
+
+# ╔═╡ cf7ae3d9-9e22-453f-b67e-69014e284c4a
+let
+	x = 1:10
+	y = x .^ 2
+	lines(x, y)
+end
+
 # ╔═╡ 3d8155dd-8b65-4296-a344-750f6b3cd03e
 begin
 	function MakieCore.convert_arguments(P::PointBased, law::ExtinctionLaw) 
@@ -21,13 +77,26 @@ begin
 
 	MakieCore.plottype(::ExtinctionLaw) = Lines
 
-	lplot(law::Union{CCM89, OD94, CAL00, GCC09, VCG04, FM90}; args...) = lines(law;
-		axis = (; xlabel=rich("x [μm", superscript("-1"), "]"), ylabel="E(B-V)"),
+	lplot(law::Union{
+		CCM89,
+		OD94,
+		CAL00,
+		GCC09,
+		VCG04,
+		FM90,
+	}; args...) = lines(law;
+		axis = (;
+			xlabel = rich("x [μm", superscript("-1"), "]"),
+			ylabel = "E(B-V)",
+		),
 		args...,
 	)
 
-	lplot(law::Union{F99}; args...) = lines(law;
-		axis = (; xlabel=rich("x [μm", superscript("-1"), "]"), ylabel="E(B-V)"),
+	lplot(law::Union{F99, F04, M14}; args...) = lines(law;
+		axis = (;
+			xlabel = rich("x [μm", superscript("-1"), "]"),
+			ylabel = rich("A(x) / A(V)"),
+		),
 		args...,
 	)
 	
@@ -39,10 +108,10 @@ end
 # ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
 let
 	# Dummy plot
-	fig, ax, p = lplot(F99())
+	fig, ax, p = lplot(F04())
 
 	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
-		lines!(ax, F99(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"))
+		lines!(ax, F04(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"))
 	end
 
 	axislegend(ax; position=:lt)
@@ -53,18 +122,23 @@ end
 # ╔═╡ 2d59cb9f-4529-4808-8fe8-ba573fdc6537
 set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
 
+# ╔═╡ 50902d4c-9667-4dd3-aff1-4b672d7ed460
+TableOfContents()
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DustExtinction = "fb44c06c-c62f-5397-83f5-69249e0a3c8e"
 MakieCore = "20f20a25-4f0e-4fdf-b5d1-57303727442b"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
 CairoMakie = "~0.13.1"
 DustExtinction = "~0.11.1"
 MakieCore = "~0.9.0"
+PlutoUI = "~0.7.61"
 Unitful = "~1.22.0"
 """
 
@@ -74,7 +148,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "2dda7e6981a0f440bebf95726e7a462dd6addbca"
+project_hash = "897414b0a2b582853bb00eddf212d7bdc6e5de43"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -86,6 +160,12 @@ weakdeps = ["ChainRulesCore", "Test"]
     [deps.AbstractFFTs.extensions]
     AbstractFFTsChainRulesCoreExt = "ChainRulesCore"
     AbstractFFTsTestExt = "Test"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "6e1d2a35f2f90a4bc7c2ed98079b2ba09c35b83a"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.3.2"
 
 [[deps.AbstractTrees]]
 git-tree-sha1 = "2d9c9a55f9c93e8887ad391fbae72f8ef55e1177"
@@ -232,21 +312,15 @@ version = "3.28.0"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
-git-tree-sha1 = "c7acce7a7e1078a20a285211dd73cd3941a871d6"
+git-tree-sha1 = "b10d0b65641d57b8b4d5e234446582de5047050d"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
-version = "0.12.0"
-
-    [deps.ColorTypes.extensions]
-    StyledStringsExt = "StyledStrings"
-
-    [deps.ColorTypes.weakdeps]
-    StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
+version = "0.11.5"
 
 [[deps.ColorVectorSpace]]
 deps = ["ColorTypes", "FixedPointNumbers", "LinearAlgebra", "Requires", "Statistics", "TensorCore"]
-git-tree-sha1 = "8b3b6f87ce8f65a2b4f857528fd8d70086cd72b1"
+git-tree-sha1 = "a1f44953f2382ebb937d60dafbe2deea4bd23249"
 uuid = "c3611d14-8923-5661-9e6a-0046d554d3a4"
-version = "0.11.0"
+version = "0.10.0"
 weakdeps = ["SpecialFunctions"]
 
     [deps.ColorVectorSpace.extensions]
@@ -599,6 +673,24 @@ git-tree-sha1 = "2bd56245074fab4015b9174f24ceba8293209053"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.27"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.5"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "7134810b1afce04bbc1045ca1985fbe81ce17653"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.5"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "b6d6bfdd7ce25b0f9b2f6b3dd56b2673a66c8770"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.5"
+
 [[deps.ImageAxes]]
 deps = ["AxisArrays", "ImageBase", "ImageCore", "Reexport", "SimpleTraits"]
 git-tree-sha1 = "e12629406c6c4442539436581041d372d69c55ba"
@@ -901,6 +993,11 @@ git-tree-sha1 = "f02b56007b064fbfddb4c9cd60161b6dd0f40df3"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.1.0"
 
+[[deps.MIMEs]]
+git-tree-sha1 = "1833212fd6f580c20d4291da9c1b4e8a655b128e"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "1.0.0"
+
 [[deps.MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "oneTBB_jll"]
 git-tree-sha1 = "5de60bc6cb3899cd318d80d627560fae2e2d99ae"
@@ -1125,6 +1222,12 @@ deps = ["ColorSchemes", "Colors", "Dates", "PrecompileTools", "Printf", "Random"
 git-tree-sha1 = "3ca9a356cd2e113c420f2c13bea19f8d3fb1cb18"
 uuid = "995b91a9-d308-5afd-9ec6-746e21dbc043"
 version = "1.4.3"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "7e71a55b87222942f0f9337be62e26b1f103d3e4"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.61"
 
 [[deps.PolygonOps]]
 git-tree-sha1 = "77b3d3605fc1cd0b42d95eba87dfcd2bf67d5ff6"
@@ -1444,6 +1547,11 @@ git-tree-sha1 = "0c45878dcfdcfa8480052b6ab162cdd138781742"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.11.3"
 
+[[deps.Tricks]]
+git-tree-sha1 = "6cae795a5a9313bbb4f60683f7263318fc7d1505"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.10"
+
 [[deps.TriplotBase]]
 git-tree-sha1 = "4d4ed7f294cda19382ff7de4c137d24d16adc89b"
 uuid = "981d1d27-644d-49a2-9326-4793e63143c3"
@@ -1667,10 +1775,17 @@ version = "3.6.0+0"
 """
 
 # ╔═╡ Cell order:
+# ╟─e952645a-97d6-4edd-a6a1-4e589782fa06
+# ╟─f3852801-04f6-4b54-acb9-211a3eda682f
+# ╟─9ad3d6d4-589c-41a0-953b-da9df3093304
+# ╠═a0365153-b17d-4299-a109-eced2dbd377f
+# ╠═cf7ae3d9-9e22-453f-b67e-69014e284c4a
 # ╠═52bcd81b-cabc-4122-b98e-9d74566ac593
 # ╠═38b19661-d3b0-4b1b-bd73-5b59819e250a
 # ╠═3d8155dd-8b65-4296-a344-750f6b3cd03e
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
 # ╠═2d59cb9f-4529-4808-8fe8-ba573fdc6537
+# ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
+# ╠═e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
