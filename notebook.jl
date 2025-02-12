@@ -4,8 +4,11 @@
 using Markdown
 using InteractiveUtils
 
+# ╔═╡ ec17929a-3fa0-4158-9377-e99fe65e4024
+using CairoMakie # High image quality backend for Makie
+
 # ╔═╡ 52bcd81b-cabc-4122-b98e-9d74566ac593
-using MakieCore, DustExtinction, CairoMakie, Unitful
+using DustExtinction
 
 # ╔═╡ 38b19661-d3b0-4b1b-bd73-5b59819e250a
 using DustExtinction: bounds, aa_to_invum, ExtinctionLaw
@@ -48,7 +51,7 @@ plot(law)
 
 # ╔═╡ a0365153-b17d-4299-a109-eced2dbd377f
 md"""
-To accomplish this, it seems that we just need to teach Makie how to interpret our custom `ExctinctionLaw` types. Starting with a vanilla Makie plot object like:
+To accomplish this, it seems that we just need to teach Makie how to interpret our custom `ExctinctionLaw` types. For a basic plot like below:
 
 ```julia
 x = 1:10
@@ -59,65 +62,109 @@ scatter(x, y) # or scatter plot
 ```
 """
 
-# ╔═╡ cf7ae3d9-9e22-453f-b67e-69014e284c4a
-let
-	x = 1:10
-	y = x .^ 2
-	lines(x, y)
-end
+# ╔═╡ bba755ce-9147-4e84-b538-3f9b3a19b947
+md"""
+ Makie just needs to know what `x` and `y` are via a `convert_arguments` method defined for our desired kind of plot and custom type being passed, and everything else should just work™.
+
+Let's give it a go:
+"""
 
 # ╔═╡ 3d8155dd-8b65-4296-a344-750f6b3cd03e
-begin
-	function MakieCore.convert_arguments(P::PointBased, law::ExtinctionLaw) 
-		aa = range(bounds(law)...; length=1_000)
-		m = map(law, aa)
-		invum = map(aa_to_invum, aa)
-		return convert_arguments(P, invum, m)
-	end
-
-	MakieCore.plottype(::ExtinctionLaw) = Lines
-
-	lplot(law::Union{
-		CCM89,
-		OD94,
-		CAL00,
-		GCC09,
-		VCG04,
-		FM90,
-	}; args...) = lines(law;
-		axis = (;
-			xlabel = rich("x [μm", superscript("-1"), "]"),
-			ylabel = "E(B-V)",
-		),
-		args...,
-	)
-
-	lplot(law::Union{F99, F04, M14}; args...) = lines(law;
-		axis = (;
-			xlabel = rich("x [μm", superscript("-1"), "]"),
-			ylabel = rich("A(x) / A(V)"),
-		),
-		args...,
-	)
-	
-	# Can also do plot(law; color=:blue, linewidth=10)
-	# lines(law; color=:cornflowerblue, linewidth=5)
-	# lplot(law; color=:cornflowerblue, linewidth=5)
+function Makie.convert_arguments(P::PointBased, law::ExtinctionLaw) 
+	aa = range(bounds(law)...; length=1_000)
+	m = map(law, aa)
+	invum = map(aa_to_invum, aa)
+	return convert_arguments(P, invum, m) # (Plot type, x, y)
 end
 
-# ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
+# ╔═╡ 69dc7a0c-9d19-4b32-ab19-5c722a4dff88
+md"""
+We've used [`PointBased`](https://docs.makie.org/stable/explanations/recipes#Multiple-Argument-Conversion-with-convert_arguments) here to give us access to both `lines` and `scatter` plots. We can also use `plottype` to set out default plot type to a line plot, for example.
+"""
+
+# ╔═╡ c02ae685-0a34-4778-b3fc-bc8f386796de
+Makie.plottype(::ExtinctionLaw) = Lines
+
+# ╔═╡ 265eb7bd-cf63-400d-b138-fcc231c07c11
+md"""
+Ok, that should be it. Let's try it out.
+"""
+
+# ╔═╡ e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
 let
-	# Dummy plot
-	fig, ax, p = lplot(F04())
-
-	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
-		lines!(ax, F04(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"))
-	end
-
-	axislegend(ax; position=:lt)
+	fig = Figure()
+	law = CCM89()
 	
+	scatter(fig[1, 1], law; color=:green, markersize=5)
+	lines(fig[2, 1], law; color=:cornflowerblue, linewidth=5)
+	plot(fig[3, 1], law; color=:red)
+
+	Colorbar(fig[:, 2])
+	str = "A LOOOOOOOOOOOOOOONG TITLE"
+	rainbow = cgrad(:rainbow, length(str), categorical = true)
+	fontsizes = 30 .+ 10 .* sin.(range(0, 3pi, length = length(str)))
+	
+	rainbow_chars = map(enumerate(str)) do (i, c)
+	    rich("$c", color = rainbow[i], fontsize = fontsizes[i])
+	end
+	Label(fig[0, :], rich(rainbow_chars..., fontsize=28))
+
 	fig
 end
+
+# ╔═╡ d02f024d-697f-41db-b55f-f259a6ec8b91
+md"""
+Great, it looks like the usual Makie.jl machinery is working out of the box! Let's use this as a building block to define our custom plot command next.
+"""
+
+# ╔═╡ ce2c0cd4-f9bf-4865-82dc-290f2622a43c
+md"""
+## Custom plot
+"""
+
+# ╔═╡ a336d664-3659-4fd4-966d-2e8b1973bc3a
+	
+
+	# lplot(law::Union{
+	# 	CCM89,
+	# 	OD94,
+	# 	CAL00,
+	# 	GCC09,
+	# 	VCG04,
+	# 	FM90,
+	# }; args...) = lines(law;
+	# 	axis = (;
+	# 		xlabel = rich("x [μm", superscript("-1"), "]"),
+	# 		ylabel = "E(B-V)",
+	# 	),
+	# 	args...,
+	# )
+
+	# lplot(law::Union{F99, F04, M14}; args...) = lines(law;
+	# 	axis = (;
+	# 		xlabel = rich("x [μm", superscript("-1"), "]"),
+	# 		ylabel = rich("A(x) / A(V)"),
+	# 	),
+	# 	args...,
+	# )
+	
+	# # Can also do plot(law; color=:blue, linewidth=10)
+	# # lines(law; color=:cornflowerblue, linewidth=5)
+	# # lplot(law; color=:cornflowerblue, linewidth=5)
+
+# ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
+# let
+# 	# Dummy plot
+# 	fig, ax, p = lplot(F04())
+
+# 	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
+# 		lines!(ax, F04(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"))
+# 	end
+
+# 	axislegend(ax; position=:lt)
+	
+# 	fig
+# end
 
 # ╔═╡ 2d59cb9f-4529-4808-8fe8-ba573fdc6537
 set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
@@ -130,16 +177,12 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DustExtinction = "fb44c06c-c62f-5397-83f5-69249e0a3c8e"
-MakieCore = "20f20a25-4f0e-4fdf-b5d1-57303727442b"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
 CairoMakie = "~0.13.1"
 DustExtinction = "~0.11.1"
-MakieCore = "~0.9.0"
 PlutoUI = "~0.7.61"
-Unitful = "~1.22.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -148,7 +191,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "897414b0a2b582853bb00eddf212d7bdc6e5de43"
+project_hash = "c55b850ea3ee34aa46b420982368b2d462cb5078"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1778,11 +1821,19 @@ version = "3.6.0+0"
 # ╟─e952645a-97d6-4edd-a6a1-4e589782fa06
 # ╟─f3852801-04f6-4b54-acb9-211a3eda682f
 # ╟─9ad3d6d4-589c-41a0-953b-da9df3093304
-# ╠═a0365153-b17d-4299-a109-eced2dbd377f
-# ╠═cf7ae3d9-9e22-453f-b67e-69014e284c4a
+# ╟─a0365153-b17d-4299-a109-eced2dbd377f
+# ╟─bba755ce-9147-4e84-b538-3f9b3a19b947
+# ╠═ec17929a-3fa0-4158-9377-e99fe65e4024
 # ╠═52bcd81b-cabc-4122-b98e-9d74566ac593
 # ╠═38b19661-d3b0-4b1b-bd73-5b59819e250a
 # ╠═3d8155dd-8b65-4296-a344-750f6b3cd03e
+# ╟─69dc7a0c-9d19-4b32-ab19-5c722a4dff88
+# ╠═c02ae685-0a34-4778-b3fc-bc8f386796de
+# ╟─265eb7bd-cf63-400d-b138-fcc231c07c11
+# ╠═e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
+# ╟─d02f024d-697f-41db-b55f-f259a6ec8b91
+# ╟─ce2c0cd4-f9bf-4865-82dc-290f2622a43c
+# ╠═a336d664-3659-4fd4-966d-2e8b1973bc3a
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
 # ╠═2d59cb9f-4529-4808-8fe8-ba573fdc6537
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
