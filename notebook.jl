@@ -127,18 +127,13 @@ md"""
 For now, this will pretty much just mirror the basic organization scheme in [`docs/plots.jl`](https://github.com/JuliaAstro/DustExtinction.jl/blob/cc364867f65805fe8fee34c69821933bb71c5770/docs/plots.jl)
 """
 
-# ╔═╡ 63430ae2-f5f2-4365-abca-8949dfa8a926
-lplot(law::Union{CCM89, OD94, CAL00, GCC09, VCG04, FM90}; args...) = lines(
-	law;
-	axis = (;
-		xlabel = rich("x [μm", superscript("-1"), "]"),
-		ylabel = "E(B-V)",
-	),
-	args...,
-)
+# ╔═╡ 523caf2f-803f-4f4a-b4da-799cfb592c35
+md"""
+### Parameter averages
+"""
 
 # ╔═╡ f0ae3f37-0231-4c96-8f38-efef0b53a5d9
-lplot(law::Union{F04, F19, F99, M14}; args...) = lines(
+lplot(law::ExtinctionLaw; args...) = lines(
 	law;
 	axis = (;
 		xlabel = rich("x [μm", superscript("-1"), "]"),
@@ -148,31 +143,96 @@ lplot(law::Union{F04, F19, F99, M14}; args...) = lines(
 )
 
 # ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
-# This seems like a huge code smell
-function lplot(law::Union{
-	Type{CCM89},
-	Type{OD94},
-	Type{CAL00},
-	Type{GCC09},
-	Type{VCG04},
-	Type{F99},
-	Type{F04},
-	Type{F19},
-	Type{M14},
-
-};
-	args...)
+function lplot(law::Type{<:ExtinctionLaw}; args...)
 	# Dummy plot
 	fig, ax, p = lplot(law())
 
-	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
-		lines!(ax, law(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"), args...)
+	for Rv in (2.0, 3.1, 4.0, 5.0, 6.0)
+		lines!(ax, law(Rv); label=rich("Rv = $(Rv)"), args...)
 	end
 
 	axislegend(ax; position=:lt)
 	
 	fig
 end
+
+# ╔═╡ d1df1bca-07a8-4ab2-bd19-e0e80d3cf8e9
+md"""
+### Shape models
+"""
+
+# ╔═╡ ea801948-edb2-4811-ae01-ac6be8b135a9
+lplot(law::FM90; args...) = lines(law;
+	axis = (;
+		xlabel = rich("x [μm", superscript("-1"), "]"),
+		ylabel = rich("(E(λ) - V) / E(B - V)"),
+	),
+	args...,
+)
+
+# ╔═╡ 434ed891-3178-48df-bf20-02a6f9af8696
+function lplot(law::Type{<:FM90}; args...)
+	# m1
+	fig, ax, p = lplot(law(); label="total")
+
+	# m2
+	lines!(ax, law(c3=0.0, c4=0.0); label="linear term")
+
+	# m3
+	lines!(ax, law(c1=0.0, c2=0.0, c4=0.0); label="bump term")
+
+	# m4
+	lines!(ax, law(c1=0.0, c2=0.0, c3=0.0); label="FUV rise term")
+
+	# for Rv in (2.0, 3.1, 4.0, 5.0, 6.0)
+	# 	lines!(ax, law(Rv); label=rich("Rv = $(Rv)"), args...)
+	# end
+
+	axislegend(ax; position=:lt)
+	
+	fig
+end
+
+# ╔═╡ 5d474527-f38e-499f-bb51-87a34057d1b0
+md"""
+### Mixture models
+"""
+
+# ╔═╡ 04192395-8502-4fe0-86d5-13d53c52bb45
+function rplot(law::Type{G16}; f_A=1.0, args...)
+	# Dummy plot
+	fig, ax, p = lplot(law())
+
+	for Rv in (2.0, 3.1, 4.0, 5.0, 6.0)
+		lines!(ax, law(; Rv, f_A); label=rich("Rv = $(Rv)"), args...)
+	end
+
+	axislegend(ax, "Rv"; position=:lt)
+	
+	fig
+end
+
+# ╔═╡ 0f1a1f72-4a69-4af7-b6b1-9dc0045a1e6d
+function fplot(law::Type{G16}; Rv=3.1, args...)
+	# Dummy plot
+	fig, ax, p = lplot(law())
+
+	for f_A in 0.0:0.2:1.0
+		lines!(ax, law(; Rv, f_A); label=rich("Rv = $(Rv)"), args...)
+	end
+
+	axislegend(ax, "f_A"; position=:lt)
+	
+	fig
+end
+
+# ╔═╡ 7e8f193a-85a4-4adc-bb2a-b53820a2e832
+md"""
+### Dust map
+"""
+
+# ╔═╡ e7fdc8aa-34ac-42c8-8543-1f567955f0e2
+# dustmap = SFD98Map()
 
 # ╔═╡ 21a628ad-a30f-4e1f-8bec-9f4260efcc22
 md"""
@@ -201,11 +261,11 @@ doc(OD94)
 # ╔═╡ 6181b20f-4d22-4856-8013-c44f87872e92
 doc(CAL00)
 
-# ╔═╡ 1b896895-deb5-497f-8161-ae55c5378094
-doc(GCC09)
-
 # ╔═╡ 996f6789-5951-4082-97e3-126fc33e5137
 doc(VCG04)
+
+# ╔═╡ 1b896895-deb5-497f-8161-ae55c5378094
+doc(GCC09)
 
 # ╔═╡ 17611bf2-0147-4645-95d9-84434061fe46
 doc(F99)
@@ -218,6 +278,20 @@ doc(F19)
 
 # ╔═╡ 75046681-666f-4f00-af02-6d4e895724d6
 doc(M14)
+
+# ╔═╡ 2860f7b3-7141-4d9a-86b1-42c46f5de915
+doc(FM90)
+
+# ╔═╡ de9e6999-cc34-4acd-833b-4ffbfffc90a8
+md"""
+### G16
+"""
+
+# ╔═╡ 4b86a1ec-ffda-46d4-9506-de84e33ed201
+rplot(G16)
+
+# ╔═╡ cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
+fplot(G16)
 
 # ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 md"""
@@ -1894,21 +1968,33 @@ version = "3.6.0+0"
 # ╠═e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
 # ╟─d02f024d-697f-41db-b55f-f259a6ec8b91
 # ╟─ce2c0cd4-f9bf-4865-82dc-290f2622a43c
-# ╠═63430ae2-f5f2-4365-abca-8949dfa8a926
+# ╟─523caf2f-803f-4f4a-b4da-799cfb592c35
 # ╠═f0ae3f37-0231-4c96-8f38-efef0b53a5d9
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
+# ╟─d1df1bca-07a8-4ab2-bd19-e0e80d3cf8e9
+# ╠═ea801948-edb2-4811-ae01-ac6be8b135a9
+# ╠═434ed891-3178-48df-bf20-02a6f9af8696
+# ╟─5d474527-f38e-499f-bb51-87a34057d1b0
+# ╠═04192395-8502-4fe0-86d5-13d53c52bb45
+# ╠═0f1a1f72-4a69-4af7-b6b1-9dc0045a1e6d
+# ╟─7e8f193a-85a4-4adc-bb2a-b53820a2e832
+# ╠═e7fdc8aa-34ac-42c8-8543-1f567955f0e2
 # ╟─21a628ad-a30f-4e1f-8bec-9f4260efcc22
 # ╟─4da7083b-2b1b-4b3d-9a2a-009522602dfc
 # ╟─6fbcda58-0578-4953-95cc-d2e5a5c50c31
 # ╠═6047ecb2-fa04-49e9-883a-6f50a9cf922a
 # ╠═283b8f5e-d8de-4e1d-a0e1-e9891e509a34
 # ╠═6181b20f-4d22-4856-8013-c44f87872e92
-# ╠═1b896895-deb5-497f-8161-ae55c5378094
 # ╠═996f6789-5951-4082-97e3-126fc33e5137
+# ╠═1b896895-deb5-497f-8161-ae55c5378094
 # ╠═17611bf2-0147-4645-95d9-84434061fe46
 # ╠═cb36ca84-8782-47bb-b1c3-4edcf090e955
 # ╠═8c61d837-c398-449c-9752-b52c497284b5
 # ╠═75046681-666f-4f00-af02-6d4e895724d6
+# ╠═2860f7b3-7141-4d9a-86b1-42c46f5de915
+# ╟─de9e6999-cc34-4acd-833b-4ffbfffc90a8
+# ╠═4b86a1ec-ffda-46d4-9506-de84e33ed201
+# ╠═cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
