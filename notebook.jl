@@ -5,7 +5,10 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ ec17929a-3fa0-4158-9377-e99fe65e4024
-using CairoMakie # High image quality backend for Makie
+begin
+	using CairoMakie # High image quality backend for Makie
+	set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
+end
 
 # ╔═╡ 52bcd81b-cabc-4122-b98e-9d74566ac593
 using DustExtinction
@@ -20,7 +23,7 @@ using PlutoUI
 md"""
 # Makie migration 🐤
 
-[RIIR](https://github.com/ansuz/RIIR)? Nah, RIIM. Protoypes here.
+[RIIR](https://transitiontech.ca/random/RIIR)? Nah, RIIM. Prototypes here.
 """
 
 # ╔═╡ f3852801-04f6-4b54-acb9-211a3eda682f
@@ -79,7 +82,7 @@ end
 
 # ╔═╡ 69dc7a0c-9d19-4b32-ab19-5c722a4dff88
 md"""
-We've used [`PointBased`](https://docs.makie.org/stable/explanations/recipes#Multiple-Argument-Conversion-with-convert_arguments) here to give us access to both `lines` and `scatter` plots. We can also use `plottype` to set out default plot type to a line plot, for example.
+We've used [`PointBased`](https://docs.makie.org/stable/explanations/recipes#Multiple-Argument-Conversion-with-convert_arguments) here to give us access to both `lines` and `scatter` plots. We can also use `plottype` to set our default plot type to a line plot, for example.
 """
 
 # ╔═╡ c02ae685-0a34-4778-b3fc-bc8f386796de
@@ -180,13 +183,11 @@ md"""
 # ╔═╡ 4da7083b-2b1b-4b3d-9a2a-009522602dfc
 md"""
 ## Gallery
-
-Let's take a look using the following convenience function:
 """
 
 # ╔═╡ 6fbcda58-0578-4953-95cc-d2e5a5c50c31
 doc(law) = md"""
-### $(law)
+### $(nameof(law))
 
 $(lplot(law))
 """
@@ -228,9 +229,6 @@ md"""
 md"""
 # Notebook setup 🔧
 """
-
-# ╔═╡ 2d59cb9f-4529-4808-8fe8-ba573fdc6537
-set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
 
 # ╔═╡ 50902d4c-9667-4dd3-aff1-4b672d7ed460
 TableOfContents()
@@ -1901,7 +1899,7 @@ version = "3.6.0+0"
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
 # ╟─21a628ad-a30f-4e1f-8bec-9f4260efcc22
 # ╟─4da7083b-2b1b-4b3d-9a2a-009522602dfc
-# ╠═6fbcda58-0578-4953-95cc-d2e5a5c50c31
+# ╟─6fbcda58-0578-4953-95cc-d2e5a5c50c31
 # ╠═6047ecb2-fa04-49e9-883a-6f50a9cf922a
 # ╠═283b8f5e-d8de-4e1d-a0e1-e9891e509a34
 # ╠═6181b20f-4d22-4856-8013-c44f87872e92
@@ -1913,7 +1911,6 @@ version = "3.6.0+0"
 # ╠═75046681-666f-4f00-af02-6d4e895724d6
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
-# ╠═2d59cb9f-4529-4808-8fe8-ba573fdc6537
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
 # ╠═e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
 # ╟─00000000-0000-0000-0000-000000000001
