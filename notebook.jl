@@ -119,52 +119,75 @@ Great, it looks like the usual Makie.jl machinery is working out of the box! Let
 
 # ╔═╡ ce2c0cd4-f9bf-4865-82dc-290f2622a43c
 md"""
-## Custom plot
+## Custom plot method
+
+For now, this will pretty much just mirror the basic organization scheme in [`docs/plots.jl`](https://github.com/JuliaAstro/DustExtinction.jl/blob/cc364867f65805fe8fee34c69821933bb71c5770/docs/plots.jl)
 """
 
-# ╔═╡ a336d664-3659-4fd4-966d-2e8b1973bc3a
-	
+# ╔═╡ 63430ae2-f5f2-4365-abca-8949dfa8a926
+lplot(law::Union{CCM89, OD94, CAL00, GCC09, VCG04, FM90}; args...) = lines(
+	law;
+	axis = (;
+		xlabel = rich("x [μm", superscript("-1"), "]"),
+		ylabel = "E(B-V)",
+	),
+	args...,
+)
 
-	# lplot(law::Union{
-	# 	CCM89,
-	# 	OD94,
-	# 	CAL00,
-	# 	GCC09,
-	# 	VCG04,
-	# 	FM90,
-	# }; args...) = lines(law;
-	# 	axis = (;
-	# 		xlabel = rich("x [μm", superscript("-1"), "]"),
-	# 		ylabel = "E(B-V)",
-	# 	),
-	# 	args...,
-	# )
-
-	# lplot(law::Union{F99, F04, M14}; args...) = lines(law;
-	# 	axis = (;
-	# 		xlabel = rich("x [μm", superscript("-1"), "]"),
-	# 		ylabel = rich("A(x) / A(V)"),
-	# 	),
-	# 	args...,
-	# )
-	
-	# # Can also do plot(law; color=:blue, linewidth=10)
-	# # lines(law; color=:cornflowerblue, linewidth=5)
-	# # lplot(law; color=:cornflowerblue, linewidth=5)
+# ╔═╡ f0ae3f37-0231-4c96-8f38-efef0b53a5d9
+lplot(law::Union{F99, F04, M14}; args...) = lines(
+	law;
+	axis = (;
+		xlabel = rich("x [μm", superscript("-1"), "]"),
+		ylabel = rich("A(x) / A(V)"),
+	),
+	args...,
+)
 
 # ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
-# let
-# 	# Dummy plot
-# 	fig, ax, p = lplot(F04())
+function lplot(law::Type{CCM89}; args...)
+	# Dummy plot
+	fig, ax, p = lines(law();
+		axis = (;
+			xlabel = rich("x [μm", superscript("-1"), "]"),
+			ylabel = rich("E(λ - V) / E(B - V)")
+		)
+	)
 
-# 	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
-# 		lines!(ax, F04(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"))
-# 	end
+	# for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
+	# 	lines!(ax, law(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"), args...)
+	# end
 
-# 	axislegend(ax; position=:lt)
+	# axislegend(ax; position=:lt)
 	
-# 	fig
-# end
+	fig
+end
+
+# ╔═╡ 7f8616ed-b34d-45d9-a636-bed5bb112117
+lplot(CCM89)
+
+# ╔═╡ f6339b5f-198a-4586-bc4a-9393b85f97c7
+FM90(3.2)
+
+# ╔═╡ 21a628ad-a30f-4e1f-8bec-9f4260efcc22
+md"""
+!!! note
+	Here, I've gone with the very creative name `lplot`
+"""
+
+# ╔═╡ 4da7083b-2b1b-4b3d-9a2a-009522602dfc
+md"""
+## Gallery
+"""
+
+# ╔═╡ c1eb0919-98d2-4f36-8fe4-cdeba4bb0127
+
+
+# ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
+md"""
+!!! warning "TODO"
+	Make more customizable.
+"""
 
 # ╔═╡ 2d59cb9f-4529-4808-8fe8-ba573fdc6537
 set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
@@ -1833,8 +1856,15 @@ version = "3.6.0+0"
 # ╠═e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
 # ╟─d02f024d-697f-41db-b55f-f259a6ec8b91
 # ╟─ce2c0cd4-f9bf-4865-82dc-290f2622a43c
-# ╠═a336d664-3659-4fd4-966d-2e8b1973bc3a
+# ╠═63430ae2-f5f2-4365-abca-8949dfa8a926
+# ╠═f0ae3f37-0231-4c96-8f38-efef0b53a5d9
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
+# ╠═7f8616ed-b34d-45d9-a636-bed5bb112117
+# ╠═f6339b5f-198a-4586-bc4a-9393b85f97c7
+# ╟─21a628ad-a30f-4e1f-8bec-9f4260efcc22
+# ╟─4da7083b-2b1b-4b3d-9a2a-009522602dfc
+# ╠═c1eb0919-98d2-4f36-8fe4-cdeba4bb0127
+# ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╠═2d59cb9f-4529-4808-8fe8-ba573fdc6537
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
 # ╠═e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
