@@ -119,7 +119,7 @@ Great, it looks like the usual Makie.jl machinery is working out of the box! Let
 
 # ╔═╡ ce2c0cd4-f9bf-4865-82dc-290f2622a43c
 md"""
-## Custom plot method
+## Custom plot function
 
 For now, this will pretty much just mirror the basic organization scheme in [`docs/plots.jl`](https://github.com/JuliaAstro/DustExtinction.jl/blob/cc364867f65805fe8fee34c69821933bb71c5770/docs/plots.jl)
 """
@@ -135,7 +135,7 @@ lplot(law::Union{CCM89, OD94, CAL00, GCC09, VCG04, FM90}; args...) = lines(
 )
 
 # ╔═╡ f0ae3f37-0231-4c96-8f38-efef0b53a5d9
-lplot(law::Union{F99, F04, M14}; args...) = lines(
+lplot(law::Union{F04, F19, F99, M14}; args...) = lines(
 	law;
 	axis = (;
 		xlabel = rich("x [μm", superscript("-1"), "]"),
@@ -145,29 +145,31 @@ lplot(law::Union{F99, F04, M14}; args...) = lines(
 )
 
 # ╔═╡ d2f22062-f1cc-4b3c-8df5-2df35166d61b
-function lplot(law::Type{CCM89}; args...)
+# This seems like a huge code smell
+function lplot(law::Union{
+	Type{CCM89},
+	Type{OD94},
+	Type{CAL00},
+	Type{GCC09},
+	Type{VCG04},
+	Type{F99},
+	Type{F04},
+	Type{F19},
+	Type{M14},
+
+};
+	args...)
 	# Dummy plot
-	fig, ax, p = lines(law();
-		axis = (;
-			xlabel = rich("x [μm", superscript("-1"), "]"),
-			ylabel = rich("E(λ - V) / E(B - V)")
-		)
-	)
+	fig, ax, p = lplot(law())
 
-	# for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
-	# 	lines!(ax, law(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"), args...)
-	# end
+	for Rᵥ in (2.0, 3.1, 4.0, 5.0, 6.0)
+		lines!(ax, law(Rᵥ); label=rich("Rᵥ = $(Rᵥ)"), args...)
+	end
 
-	# axislegend(ax; position=:lt)
+	axislegend(ax; position=:lt)
 	
 	fig
 end
-
-# ╔═╡ 7f8616ed-b34d-45d9-a636-bed5bb112117
-lplot(CCM89)
-
-# ╔═╡ f6339b5f-198a-4586-bc4a-9393b85f97c7
-FM90(3.2)
 
 # ╔═╡ 21a628ad-a30f-4e1f-8bec-9f4260efcc22
 md"""
@@ -178,15 +180,53 @@ md"""
 # ╔═╡ 4da7083b-2b1b-4b3d-9a2a-009522602dfc
 md"""
 ## Gallery
+
+Let's take a look using the following convenience function:
 """
 
-# ╔═╡ c1eb0919-98d2-4f36-8fe4-cdeba4bb0127
+# ╔═╡ 6fbcda58-0578-4953-95cc-d2e5a5c50c31
+doc(law) = md"""
+### $(law)
 
+$(lplot(law))
+"""
+
+# ╔═╡ 6047ecb2-fa04-49e9-883a-6f50a9cf922a
+doc(CCM89)
+
+# ╔═╡ 283b8f5e-d8de-4e1d-a0e1-e9891e509a34
+doc(OD94)
+
+# ╔═╡ 6181b20f-4d22-4856-8013-c44f87872e92
+doc(CAL00)
+
+# ╔═╡ 1b896895-deb5-497f-8161-ae55c5378094
+doc(GCC09)
+
+# ╔═╡ 996f6789-5951-4082-97e3-126fc33e5137
+doc(VCG04)
+
+# ╔═╡ 17611bf2-0147-4645-95d9-84434061fe46
+doc(F99)
+
+# ╔═╡ cb36ca84-8782-47bb-b1c3-4edcf090e955
+doc(F04)
+
+# ╔═╡ 8c61d837-c398-449c-9752-b52c497284b5
+doc(F19)
+
+# ╔═╡ 75046681-666f-4f00-af02-6d4e895724d6
+doc(M14)
 
 # ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 md"""
 !!! warning "TODO"
-	Make more customizable.
+	Make more customizable, add remaining models.
+"""
+
+# ╔═╡ fc220678-c4ac-40fb-9ffe-c5145ea9e24e
+md"""
+# Notebook setup 🔧
 """
 
 # ╔═╡ 2d59cb9f-4529-4808-8fe8-ba573fdc6537
@@ -1859,12 +1899,20 @@ version = "3.6.0+0"
 # ╠═63430ae2-f5f2-4365-abca-8949dfa8a926
 # ╠═f0ae3f37-0231-4c96-8f38-efef0b53a5d9
 # ╠═d2f22062-f1cc-4b3c-8df5-2df35166d61b
-# ╠═7f8616ed-b34d-45d9-a636-bed5bb112117
-# ╠═f6339b5f-198a-4586-bc4a-9393b85f97c7
 # ╟─21a628ad-a30f-4e1f-8bec-9f4260efcc22
 # ╟─4da7083b-2b1b-4b3d-9a2a-009522602dfc
-# ╠═c1eb0919-98d2-4f36-8fe4-cdeba4bb0127
+# ╠═6fbcda58-0578-4953-95cc-d2e5a5c50c31
+# ╠═6047ecb2-fa04-49e9-883a-6f50a9cf922a
+# ╠═283b8f5e-d8de-4e1d-a0e1-e9891e509a34
+# ╠═6181b20f-4d22-4856-8013-c44f87872e92
+# ╠═1b896895-deb5-497f-8161-ae55c5378094
+# ╠═996f6789-5951-4082-97e3-126fc33e5137
+# ╠═17611bf2-0147-4645-95d9-84434061fe46
+# ╠═cb36ca84-8782-47bb-b1c3-4edcf090e955
+# ╠═8c61d837-c398-449c-9752-b52c497284b5
+# ╠═75046681-666f-4f00-af02-6d4e895724d6
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
+# ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
 # ╠═2d59cb9f-4529-4808-8fe8-ba573fdc6537
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
 # ╠═e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
