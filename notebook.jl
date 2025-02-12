@@ -228,11 +228,22 @@ end
 
 # ╔═╡ 7e8f193a-85a4-4adc-bb2a-b53820a2e832
 md"""
-### Dust map
+### Dust maps
 """
 
-# ╔═╡ e7fdc8aa-34ac-42c8-8543-1f567955f0e2
-# dustmap = SFD98Map()
+# ╔═╡ 8488efd7-c6f5-4acd-a741-f0df649c5231
+function dplot(dustmap=SFD98Map(); lrange=(-3, 3), brange=(-1, 1))
+	l = range(lrange..., length=400)
+	b = range(brange..., length=300)
+	m = [dustmap(li, bj) for li in l, bj in b]
+	
+	fig, ax, p = heatmap(l, b, m; colorrange=(0, 3), colormap=:cividis)
+	ax.xlabel = "l (°)"
+	ax.ylabel = "b (°)"
+	Colorbar(fig[1, 2], p; label="E(B - V)")
+	
+	fig
+end
 
 # ╔═╡ 21a628ad-a30f-4e1f-8bec-9f4260efcc22
 md"""
@@ -293,10 +304,18 @@ rplot(G16)
 # ╔═╡ cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
 fplot(G16)
 
+# ╔═╡ 0eaa06f4-a640-4882-9535-f236919ca360
+md"""
+### SDF98
+"""
+
+# ╔═╡ 6caa7d2e-e77f-4562-b203-2859591c60df
+dplot()
+
 # ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 md"""
 !!! warning "TODO"
-	Make more customizable, add remaining models.
+	Make more customizable
 """
 
 # ╔═╡ fc220678-c4ac-40fb-9ffe-c5145ea9e24e
@@ -1978,7 +1997,7 @@ version = "3.6.0+0"
 # ╠═04192395-8502-4fe0-86d5-13d53c52bb45
 # ╠═0f1a1f72-4a69-4af7-b6b1-9dc0045a1e6d
 # ╟─7e8f193a-85a4-4adc-bb2a-b53820a2e832
-# ╠═e7fdc8aa-34ac-42c8-8543-1f567955f0e2
+# ╠═8488efd7-c6f5-4acd-a741-f0df649c5231
 # ╟─21a628ad-a30f-4e1f-8bec-9f4260efcc22
 # ╟─4da7083b-2b1b-4b3d-9a2a-009522602dfc
 # ╟─6fbcda58-0578-4953-95cc-d2e5a5c50c31
@@ -1995,6 +2014,8 @@ version = "3.6.0+0"
 # ╟─de9e6999-cc34-4acd-833b-4ffbfffc90a8
 # ╠═4b86a1ec-ffda-46d4-9506-de84e33ed201
 # ╠═cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
+# ╟─0eaa06f4-a640-4882-9535-f236919ca360
+# ╠═6caa7d2e-e77f-4562-b203-2859591c60df
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
