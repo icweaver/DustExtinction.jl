@@ -21,7 +21,7 @@ using PlutoUI
 
 # ╔═╡ e952645a-97d6-4edd-a6a1-4e589782fa06
 md"""
-# Makie migration 🐤
+# Makie migration 🪿
 
 [RIIR](https://transitiontech.ca/random/RIIR)? Nah, RIIM. Prototypes here.
 """
@@ -199,29 +199,32 @@ md"""
 """
 
 # ╔═╡ 04192395-8502-4fe0-86d5-13d53c52bb45
-function rplot(law::Type{G16}; f_A=1.0, args...)
+function mplot(law::Type{G16}, Rvs, f_A::Real; args...)
 	# Dummy plot
 	fig, ax, p = lplot(law())
 
-	for Rv in (2.0, 3.1, 4.0, 5.0, 6.0)
+	for Rv in Rvs
 		lines!(ax, law(; Rv, f_A); label=rich("Rv = $(Rv)"), args...)
 	end
 
-	axislegend(ax, "Rv"; position=:lt)
+	axislegend(ax, "f_A = $(f_A)"; position=:lt)
 	
 	fig
 end
 
+# ╔═╡ dbb111b0-cf74-41f7-b635-d15b4dd6f316
+ExtinctionLaw |> subtypes
+
 # ╔═╡ 0f1a1f72-4a69-4af7-b6b1-9dc0045a1e6d
-function fplot(law::Type{G16}; Rv=3.1, args...)
+function mplot(law::Type{G16}, Rv::Real, f_As; args...)
 	# Dummy plot
 	fig, ax, p = lplot(law())
 
-	for f_A in 0.0:0.2:1.0
-		lines!(ax, law(; Rv, f_A); label=rich("Rv = $(Rv)"), args...)
+	for f_A in f_As
+		lines!(ax, law(; Rv, f_A); label=rich("f_A = $(f_A)"), args...)
 	end
 
-	axislegend(ax, "f_A"; position=:lt)
+	axislegend(ax, "Rv = $(Rv)"; position=:lt)
 	
 	fig
 end
@@ -298,11 +301,11 @@ md"""
 ### G16
 """
 
-# ╔═╡ 4b86a1ec-ffda-46d4-9506-de84e33ed201
-rplot(G16)
+# ╔═╡ c8506c97-81a9-4850-a587-f561736beac1
+mplot(G16, (2.0, 3.1, 4.0, 5.0, 6.0), 1.0)
 
-# ╔═╡ cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
-fplot(G16)
+# ╔═╡ f720e556-212d-482c-a1a6-a33563378cb8
+mplot(G16, 3.1, 0.0:0.2:1.0)
 
 # ╔═╡ 0eaa06f4-a640-4882-9535-f236919ca360
 md"""
@@ -1995,6 +1998,7 @@ version = "3.6.0+0"
 # ╠═434ed891-3178-48df-bf20-02a6f9af8696
 # ╟─5d474527-f38e-499f-bb51-87a34057d1b0
 # ╠═04192395-8502-4fe0-86d5-13d53c52bb45
+# ╠═dbb111b0-cf74-41f7-b635-d15b4dd6f316
 # ╠═0f1a1f72-4a69-4af7-b6b1-9dc0045a1e6d
 # ╟─7e8f193a-85a4-4adc-bb2a-b53820a2e832
 # ╠═8488efd7-c6f5-4acd-a741-f0df649c5231
@@ -2012,8 +2016,8 @@ version = "3.6.0+0"
 # ╠═75046681-666f-4f00-af02-6d4e895724d6
 # ╠═2860f7b3-7141-4d9a-86b1-42c46f5de915
 # ╟─de9e6999-cc34-4acd-833b-4ffbfffc90a8
-# ╠═4b86a1ec-ffda-46d4-9506-de84e33ed201
-# ╠═cc1d3b9a-c2c0-4e30-90ea-58c8bb256756
+# ╠═c8506c97-81a9-4850-a587-f561736beac1
+# ╠═f720e556-212d-482c-a1a6-a33563378cb8
 # ╟─0eaa06f4-a640-4882-9535-f236919ca360
 # ╠═6caa7d2e-e77f-4562-b203-2859591c60df
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
