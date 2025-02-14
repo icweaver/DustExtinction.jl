@@ -27,9 +27,14 @@ export redden,
        SFD98Map,
        ebv_galactic,
        # Makie.jl recipe extension
+       lplot,
+       lplot!,
        dplot,
        dplot!
 
+# Plot recipe stubs
+function lplot end
+function lplot! end
 function dplot end
 function dplot! end
 

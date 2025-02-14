@@ -93,6 +93,14 @@ md"""
 Ok, that should be it. Let's try it out.
 """
 
+# ╔═╡ 34c7b2ee-6251-4a3f-8890-db7d65bf6d3c
+let
+	fig, ax1, p1 = lines(CCM89())
+	ax2, p2 = scatter(fig[1, 2], F04(); color=:orange, markersize=5)
+	linkaxes!(ax1, ax2)
+	fig
+end
+
 # ╔═╡ e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
 let
 	fig = Figure()
@@ -1987,6 +1995,7 @@ version = "3.6.0+0"
 # ╟─69dc7a0c-9d19-4b32-ab19-5c722a4dff88
 # ╠═c02ae685-0a34-4778-b3fc-bc8f386796de
 # ╟─265eb7bd-cf63-400d-b138-fcc231c07c11
+# ╠═34c7b2ee-6251-4a3f-8890-db7d65bf6d3c
 # ╠═e6b3cef8-f8ee-48bd-b8fd-4c29b83b7509
 # ╟─d02f024d-697f-41db-b55f-f259a6ec8b91
 # ╟─ce2c0cd4-f9bf-4865-82dc-290f2622a43c
