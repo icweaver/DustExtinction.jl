@@ -15,4 +15,4 @@ makedocs(modules = [DustExtinction, MakieExt],
     warnonly = [:missing_docs],
 )
 
-deploydocs(repo = "github.com/JuliaAstro/DustExtinction.jl.git", push_preview = true)
+deploydocs(repo = "github.com/icweaver/DustExtinction.jl.git", push_preview = true)
