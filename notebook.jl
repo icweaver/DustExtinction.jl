@@ -350,12 +350,10 @@ y_u = model.(wavs_u)
 
 # ╔═╡ 9ca30caa-9991-4fce-9906-5eb0daf142da
 let
-	y_unitless = ustrip(y_u) # Not needed here, but kept for consistency
-	
-	lines(wavs_u, y_unitless)
-	# fig, ax, p = band(wavs_u, y_unitless; alpha=0.5)
-	# # lines!(ax, wavs, y_unitless)
-	# fig
+	# Need to ustrip mag until https://github.com/PainterQubits/Unitful.jl/issues/582#issue-1443563425 is resolved. Other units should work fine though
+	fig, ax, p = lines(wavs_u, ustrip(y_u))
+	ax.ylabel = "mag" # Needed until 
+	fig
 end
 
 # ╔═╡ 73b02862-9287-4d54-a15d-58ee96ee4a86
@@ -378,16 +376,15 @@ end
 
 # ╔═╡ ae8435a4-0b6e-44b9-a96c-950644b9be2f
 let
-	y_unitless = ustrip(y_m) # Not needed here, but kept for consistency
-	y_unitless_sampled = ustrip(y_m_sampled)
-	
-	fig, ax, p = band(wavs_m, y_unitless; alpha=0.5)
-	lines!(ax, wavs_m, y_unitless)
-	errorbars!(ax, Measurements.value.(wavs_m_sampled), y_unitless_sampled;
+	fig, ax, p = band(wavs_m, y_m; alpha=0.5)
+	lines!(ax, wavs_m, y_m)
+	# Currently hits an ambiguity error if both x and y have errorbars it seems
+	errorbars!(ax, Measurements.value.(wavs_m_sampled), y_m_sampled;
 		whiskerwidth = 10,
 		color = :orange,
 	)
-	scatter!(ax, wavs_m_sampled, y_unitless_sampled; color=:orange)
+	# Doesn't affect scatter
+	scatter!(ax, wavs_m_sampled, y_m_sampled; color=:orange)
 	fig
 end
 
@@ -401,6 +398,29 @@ wavs_u_and_m = wavs_m * u"Å"
 
 # ╔═╡ d05be6f2-db4d-45b7-8d3e-83365d23fb5b
 y_u_and_m = model.(wavs_u_and_m)
+
+# ╔═╡ 35f2bf45-b239-4614-8e28-d5765c8beba8
+wavs_u_and_m_sampled, y_u_and_m_sampled = let
+		N_samples = 6
+		wavs_u_and_m[range(begin, step=end ÷ N_samples; length=N_samples)],
+		y_u_and_m[range(begin, step=end ÷ N_samples; length=N_samples)]
+end
+
+# ╔═╡ 8c876663-0666-4a6a-95e4-9d7a8cfba12e
+let
+	y_u_and_m_unitless = ustrip(y_u_and_m)
+	y_u_and_m_unitless_sampled = ustrip(y_m_sampled)
+	wav_u_and_m_unitless = ustrip.(u"Å", wavs_u_and_m)
+	
+	fig, ax, p = band(wav_u_and_m_unitless, y_u_and_m_unitless; alpha=0.5)
+	# lines!(ax, wavs_m, y_unitless)
+	# errorbars!(ax, Measurements.value.(wavs_m_sampled), y_unitless_sampled;
+	# 	whiskerwidth = 10,
+	# 	color = :orange,
+	# )
+	# scatter!(ax, wavs_m_sampled, y_unitless_sampled; color=:orange)
+	# fig
+end
 
 # ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 md"""
@@ -2155,7 +2175,9 @@ version = "3.6.0+0"
 # ╠═ae8435a4-0b6e-44b9-a96c-950644b9be2f
 # ╟─2e58a178-2b9f-47ec-8672-8159def2aee1
 # ╠═49384e9e-00a1-4f30-975f-c2c21238810f
+# ╠═35f2bf45-b239-4614-8e28-d5765c8beba8
 # ╠═d05be6f2-db4d-45b7-8d3e-83365d23fb5b
+# ╠═8c876663-0666-4a6a-95e4-9d7a8cfba12e
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
