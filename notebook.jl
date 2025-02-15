@@ -7,7 +7,7 @@ using InteractiveUtils
 # ╔═╡ ec17929a-3fa0-4158-9377-e99fe65e4024
 begin
 	using CairoMakie # High image quality backend for Makie
-	set_theme!(theme_light(); Axis=(; xticks=WilkinsonTicks(8)))
+	set_theme!(Axis=(; xticks=WilkinsonTicks(8)))
 end
 
 # ╔═╡ 52bcd81b-cabc-4122-b98e-9d74566ac593
@@ -15,6 +15,9 @@ using DustExtinction
 
 # ╔═╡ 38b19661-d3b0-4b1b-bd73-5b59819e250a
 using DustExtinction: bounds, aa_to_invum, ExtinctionLaw
+
+# ╔═╡ 0c6f9202-eadf-49dc-a0c8-06c6a2226cea
+using Unitful, Measurements
 
 # ╔═╡ e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
 using PlutoUI
@@ -323,6 +326,82 @@ md"""
 # ╔═╡ 6caa7d2e-e77f-4562-b203-2859591c60df
 dplot()
 
+# ╔═╡ 650edad5-3b5c-4252-9b7c-4c3873d860f3
+md"""
+## Unitful.jl and Measurements.jl
+"""
+
+# ╔═╡ 9bbd648d-d1bc-4810-a060-6192c4c17455
+wavs = 2_000:3_000 # Å
+
+# ╔═╡ 2ba3ccd5-9988-4006-a17a-91df13a6a044
+model = CCM89()
+
+# ╔═╡ 77d6a1f5-04db-42d7-aaac-2ceaa13dc7b2
+md"""
+### Units
+"""
+
+# ╔═╡ d44fb624-08a7-4280-b25b-5901f97b2065
+wavs_u = wavs * u"Å"
+
+# ╔═╡ ff841fe5-d98c-41e6-aa69-3c08f394930d
+y_u = model.(wavs_u)
+
+# ╔═╡ 9ca30caa-9991-4fce-9906-5eb0daf142da
+let
+	y_unitless = ustrip(y_u) # Not needed here, but kept for consistency
+	
+	lines(wavs_u, y_unitless)
+	# fig, ax, p = band(wavs_u, y_unitless; alpha=0.5)
+	# # lines!(ax, wavs, y_unitless)
+	# fig
+end
+
+# ╔═╡ 73b02862-9287-4d54-a15d-58ee96ee4a86
+md"""
+### Measurements
+"""
+
+# ╔═╡ 588b1157-f753-452e-8522-259fa337dbcb
+wavs_m = measurement.(wavs, rand(95:100, length(wavs)))
+
+# ╔═╡ dbcdad70-a8b4-402b-89af-d8f522d376a2
+y_m = model.(wavs_m)
+
+# ╔═╡ 49718d14-0317-4000-95b2-dd165e3ba1a6
+wavs_m_sampled, y_m_sampled = let
+		N_samples = 6
+		wavs_m[range(begin, step=end ÷ N_samples; length=N_samples)],
+		y_m[range(begin, step=end ÷ N_samples; length=N_samples)]
+end
+
+# ╔═╡ ae8435a4-0b6e-44b9-a96c-950644b9be2f
+let
+	y_unitless = ustrip(y_m) # Not needed here, but kept for consistency
+	y_unitless_sampled = ustrip(y_m_sampled)
+	
+	fig, ax, p = band(wavs_m, y_unitless; alpha=0.5)
+	lines!(ax, wavs_m, y_unitless)
+	errorbars!(ax, Measurements.value.(wavs_m_sampled), y_unitless_sampled;
+		whiskerwidth = 10,
+		color = :orange,
+	)
+	scatter!(ax, wavs_m_sampled, y_unitless_sampled; color=:orange)
+	fig
+end
+
+# ╔═╡ 2e58a178-2b9f-47ec-8672-8159def2aee1
+md"""
+### Units and Measurements
+"""
+
+# ╔═╡ 49384e9e-00a1-4f30-975f-c2c21238810f
+wavs_u_and_m = wavs_m * u"Å"
+
+# ╔═╡ d05be6f2-db4d-45b7-8d3e-83365d23fb5b
+y_u_and_m = model.(wavs_u_and_m)
+
 # ╔═╡ 95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 md"""
 !!! warning "TODO"
@@ -342,12 +421,16 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DustExtinction = "fb44c06c-c62f-5397-83f5-69249e0a3c8e"
+Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
 CairoMakie = "~0.13.1"
 DustExtinction = "~0.11.1"
+Measurements = "~2.12.0"
 PlutoUI = "~0.7.61"
+Unitful = "~1.22.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -356,7 +439,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "c55b850ea3ee34aa46b420982368b2d462cb5078"
+project_hash = "a39c734ea4b81630f7293f1097a82aed41355df8"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -489,6 +572,12 @@ deps = ["Artifacts", "Bzip2_jll", "CompilerSupportLibraries_jll", "Fontconfig_jl
 git-tree-sha1 = "009060c9a6168704143100f36ab08f06c2af4642"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.18.2+1"
+
+[[deps.Calculus]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "9cb23bbb1127eefb022b022481466c0f1127d430"
+uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
+version = "0.5.2"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra"]
@@ -1254,6 +1343,28 @@ version = "1.1.9"
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 version = "2.28.2+1"
+
+[[deps.Measurements]]
+deps = ["Calculus", "LinearAlgebra", "Printf"]
+git-tree-sha1 = "3019b28107f63ee881f5883da916dd9b6aa294c1"
+uuid = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
+version = "2.12.0"
+
+    [deps.Measurements.extensions]
+    MeasurementsBaseTypeExt = "BaseType"
+    MeasurementsJunoExt = "Juno"
+    MeasurementsMakieExt = "Makie"
+    MeasurementsRecipesBaseExt = "RecipesBase"
+    MeasurementsSpecialFunctionsExt = "SpecialFunctions"
+    MeasurementsUnitfulExt = "Unitful"
+
+    [deps.Measurements.weakdeps]
+    BaseType = "7fbed51b-1ef5-4d67-9085-a4a9b26f478c"
+    Juno = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
+    Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+    RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+    SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+    Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -2029,6 +2140,22 @@ version = "3.6.0+0"
 # ╠═f720e556-212d-482c-a1a6-a33563378cb8
 # ╟─0eaa06f4-a640-4882-9535-f236919ca360
 # ╠═6caa7d2e-e77f-4562-b203-2859591c60df
+# ╟─650edad5-3b5c-4252-9b7c-4c3873d860f3
+# ╠═0c6f9202-eadf-49dc-a0c8-06c6a2226cea
+# ╠═9bbd648d-d1bc-4810-a060-6192c4c17455
+# ╠═2ba3ccd5-9988-4006-a17a-91df13a6a044
+# ╟─77d6a1f5-04db-42d7-aaac-2ceaa13dc7b2
+# ╠═d44fb624-08a7-4280-b25b-5901f97b2065
+# ╠═ff841fe5-d98c-41e6-aa69-3c08f394930d
+# ╠═9ca30caa-9991-4fce-9906-5eb0daf142da
+# ╟─73b02862-9287-4d54-a15d-58ee96ee4a86
+# ╠═588b1157-f753-452e-8522-259fa337dbcb
+# ╠═dbcdad70-a8b4-402b-89af-d8f522d376a2
+# ╠═49718d14-0317-4000-95b2-dd165e3ba1a6
+# ╠═ae8435a4-0b6e-44b9-a96c-950644b9be2f
+# ╟─2e58a178-2b9f-47ec-8672-8159def2aee1
+# ╠═49384e9e-00a1-4f30-975f-c2c21238810f
+# ╠═d05be6f2-db4d-45b7-8d3e-83365d23fb5b
 # ╟─95f9518d-2b18-42ea-9dd6-76a6ce4fb19d
 # ╟─fc220678-c4ac-40fb-9ffe-c5145ea9e24e
 # ╠═50902d4c-9667-4dd3-aff1-4b672d7ed460
