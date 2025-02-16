@@ -362,28 +362,31 @@ md"""
 """
 
 # ╔═╡ 588b1157-f753-452e-8522-259fa337dbcb
-wavs_m = measurement.(wavs, rand(95:100, length(wavs)))
+wavs_m = measurement.(wavs, 1e5 ./ wavs)
 
 # ╔═╡ dbcdad70-a8b4-402b-89af-d8f522d376a2
 y_m = model.(wavs_m)
 
 # ╔═╡ 49718d14-0317-4000-95b2-dd165e3ba1a6
 wavs_m_sampled, y_m_sampled = let
-		N_samples = 6
+		N_samples = 7
 		wavs_m[range(begin, step=end ÷ N_samples; length=N_samples)],
 		y_m[range(begin, step=end ÷ N_samples; length=N_samples)]
 end
 
 # ╔═╡ ae8435a4-0b6e-44b9-a96c-950644b9be2f
 let
+	# Currently hits an ambiguity error if both x and y have uncertainties it seems
+	wavs_m_sampled_values = Measurements.value.(wavs_m_sampled)
+	@debug wavs_m y_m
 	fig, ax, p = band(wavs_m, y_m; alpha=0.5)
 	lines!(ax, wavs_m, y_m)
-	# Currently hits an ambiguity error if both x and y have errorbars it seems
-	errorbars!(ax, Measurements.value.(wavs_m_sampled), y_m_sampled;
+	errorbars!(ax, wavs_m_sampled_values, y_m_sampled;
 		whiskerwidth = 10,
 		color = :orange,
 	)
-	# Doesn't affect scatter
+	
+	# Not ambiguous with scatter
 	scatter!(ax, wavs_m_sampled, y_m_sampled; color=:orange)
 	fig
 end
@@ -409,10 +412,11 @@ end
 # ╔═╡ 8c876663-0666-4a6a-95e4-9d7a8cfba12e
 let
 	y_u_and_m_unitless = ustrip(y_u_and_m)
-	y_u_and_m_unitless_sampled = ustrip(y_m_sampled)
-	wav_u_and_m_unitless = ustrip.(u"Å", wavs_u_and_m)
-	
-	fig, ax, p = band(wav_u_and_m_unitless, y_u_and_m_unitless; alpha=0.5)
+	# y_u_and_m_unitless_sampled = ustrip(y_m_sampled)
+	wav_u_and_m_values = Measurements.value.(wavs_u_and_m)
+
+	# @debug wav_u_and_m_values y_u_and_m_unitless
+	# fig, ax, p = band(wav_u_and_m_values, y_u_and_m_unitless; alpha=0.5)
 	# lines!(ax, wavs_m, y_unitless)
 	# errorbars!(ax, Measurements.value.(wavs_m_sampled), y_unitless_sampled;
 	# 	whiskerwidth = 10,
