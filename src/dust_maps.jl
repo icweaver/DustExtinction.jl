@@ -4,7 +4,7 @@ import Base: show
 
 # SFD98 Dust Maps
 
-mutable struct SFD98Map
+mutable struct SFD98Map <: DustMap
     mapdir::String
     ngp::ImageHDU
     ngp_size::Tuple{Int,Int}

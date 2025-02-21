@@ -64,6 +64,8 @@ Here's how to make a new extinction law, called `MyLaw`
   ```
 """
 abstract type ExtinctionLaw end
+abstract type DustMap end
+
 abstract type RvLaw <: ExtinctionLaw end
 abstract type FittableLaw <: ExtinctionLaw end
 abstract type MixtureLaw <: ExtinctionLaw end
