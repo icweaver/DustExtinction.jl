@@ -17,7 +17,7 @@ using DustExtinction
 using DustExtinction: bounds, aa_to_invum, ExtinctionLaw
 
 # ╔═╡ 0c6f9202-eadf-49dc-a0c8-06c6a2226cea
-using Unitful, Measurements
+using Unitful, UnitfulAstro, Measurements
 
 # ╔═╡ e13ddeaa-e2d4-4e9c-9696-ce2f9bdf260b
 using PlutoUI
@@ -342,6 +342,24 @@ md"""
 ### Units
 """
 
+# ╔═╡ d66ea019-4f9b-4332-a584-394f809aac06
+typeof(3u"m") |> supertypes
+
+# ╔═╡ 70ad449a-7a8c-4cc6-aeef-16bdf97f5338
+typeof(3u"mag") |> supertypes
+
+# ╔═╡ ec96fbbe-cea9-4818-97b9-a8362c6e2ef0
+typeof(3u"dB")
+
+# ╔═╡ da332ea0-c6be-4c90-ab8e-7f8acc40d2d7
+typeof(3u"dBm")
+
+# ╔═╡ 99dbbb46-2fe4-4e0f-a5b7-1f6db5bc2eb6
+unit(1u"mag") |> typeof
+
+# ╔═╡ a750925b-cf0a-4281-8551-620288b42f83
+unit(1u"dBV") |> typeof
+
 # ╔═╡ d44fb624-08a7-4280-b25b-5901f97b2065
 wavs_u = wavs * u"Å"
 
@@ -360,6 +378,33 @@ let
 	)
 	fig
 end
+
+# ╔═╡ dbafc67d-17f4-4466-ad26-d8ab850352a6
+scatter((1:10)u"Np")
+
+# ╔═╡ aa822bc4-f2ec-4e50-b391-6fe14d615320
+typeof(2u"Np")
+
+# ╔═╡ 3c232302-a38a-4294-a78e-0a5372b838f0
+typeof(u"mag")
+
+# ╔═╡ 44e2ffc8-ab20-4cb7-b9bd-ac2eaa36bb70
+scatter((1:10)u"dB")
+
+# ╔═╡ 50f70d1b-6b67-4753-bc8a-f7430b0651e2
+scatter((1:10)u"mag")
+
+# ╔═╡ 53404f1c-73d6-4776-89cf-53accba15b7e
+Makie.base_unit(q::Gain) = logunit(q)
+
+# ╔═╡ 320fa853-f1a9-4394-af78-687b70716a62
+Makie.base_unit(2u"mag")
+
+# ╔═╡ 901fc2c3-00b3-4fa7-a2be-09b3d7531293
+logunit(u"mag")
+
+# ╔═╡ b341a92a-a356-4e79-a395-8fb87a09b707
+typeof(2u"m")
 
 # ╔═╡ 73b02862-9287-4d54-a15d-58ee96ee4a86
 md"""
@@ -385,6 +430,9 @@ wavs_m_sampled, y_m_sampled = let
 		wavs_m[range(begin, step=end ÷ N_samples; length=N_samples)],
 		y_m[range(begin, step=end ÷ N_samples; length=N_samples)]
 end
+
+# ╔═╡ fabb5961-f603-4a46-9db1-21b7f9d30bdb
+errorbars(wavs_m_sampled, y_m_sampled; direction=:y)
 
 # ╔═╡ ae8435a4-0b6e-44b9-a96c-950644b9be2f
 let
@@ -465,6 +513,7 @@ DustExtinction = "fb44c06c-c62f-5397-83f5-69249e0a3c8e"
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+UnitfulAstro = "6112ee07-acf9-5e0f-b108-d242c714bf9f"
 
 [compat]
 CairoMakie = "~0.13.1"
@@ -472,6 +521,7 @@ DustExtinction = "~0.11.1"
 Measurements = "~2.12.0"
 PlutoUI = "~0.7.61"
 Unitful = "~1.22.0"
+UnitfulAstro = "~1.2.1"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -480,7 +530,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "a39c734ea4b81630f7293f1097a82aed41355df8"
+project_hash = "9eeed5e19fd999ba332140745dfba4076d05cbb2"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -2186,9 +2236,25 @@ version = "3.6.0+0"
 # ╠═9bbd648d-d1bc-4810-a060-6192c4c17455
 # ╠═2ba3ccd5-9988-4006-a17a-91df13a6a044
 # ╟─77d6a1f5-04db-42d7-aaac-2ceaa13dc7b2
+# ╠═d66ea019-4f9b-4332-a584-394f809aac06
+# ╠═70ad449a-7a8c-4cc6-aeef-16bdf97f5338
+# ╠═ec96fbbe-cea9-4818-97b9-a8362c6e2ef0
+# ╠═da332ea0-c6be-4c90-ab8e-7f8acc40d2d7
+# ╠═99dbbb46-2fe4-4e0f-a5b7-1f6db5bc2eb6
+# ╠═a750925b-cf0a-4281-8551-620288b42f83
 # ╠═d44fb624-08a7-4280-b25b-5901f97b2065
 # ╠═ff841fe5-d98c-41e6-aa69-3c08f394930d
 # ╠═9ca30caa-9991-4fce-9906-5eb0daf142da
+# ╠═dbafc67d-17f4-4466-ad26-d8ab850352a6
+# ╠═aa822bc4-f2ec-4e50-b391-6fe14d615320
+# ╠═3c232302-a38a-4294-a78e-0a5372b838f0
+# ╠═44e2ffc8-ab20-4cb7-b9bd-ac2eaa36bb70
+# ╟─50f70d1b-6b67-4753-bc8a-f7430b0651e2
+# ╠═53404f1c-73d6-4776-89cf-53accba15b7e
+# ╠═320fa853-f1a9-4394-af78-687b70716a62
+# ╠═901fc2c3-00b3-4fa7-a2be-09b3d7531293
+# ╠═b341a92a-a356-4e79-a395-8fb87a09b707
+# ╠═fabb5961-f603-4a46-9db1-21b7f9d30bdb
 # ╟─73b02862-9287-4d54-a15d-58ee96ee4a86
 # ╠═e6e6f103-5c7b-4f58-bccf-a1409c3a19f6
 # ╠═588b1157-f753-452e-8522-259fa337dbcb
